@@ -1,0 +1,85 @@
+/*1*/select fname + ' ' + lname as "Full Name", Bdate, Address,
+Dname, MGRSSN, salary
+from Employee full outer join Departments on Dno=Dnum
+where salary > (select avg(salary) from employee)
+order by salary desc;
+
+/*2*/select count(Dependent_name) as "Total_Dependents", SSN
+from Dependent right join Employee on ssn=essn
+group by SSN;
+
+/*3*/select count(*) as "Employee Count", e.Superssn,
+s.fname + ' ' + s.lname as "Full Name", s.address, s.sex, s.salary
+from employee as e left outer join employee as s on e.superssn=s.ssn
+group by e.Superssn, s.fname + ' ' + s.lname, s.address,
+s.sex, s.salary;
+
+/*4*/select pno, pname, Plocation, city, 
+sum(hours) as "Total Worked Hours", count(essn) as "Employee Count"
+from Works_for join Project on pno=Pnumber
+group by pno, pname, Plocation, city;
+
+/*5*/select top 1 pnumber, pname, hours, Plocation, city
+from project join Works_for on pnumber=pno
+order by hours desc;
+
+/*6*/select count(*) as "Employee Count", dno, sum(salary)
+from employee
+group by dno;
+
+/*7*/create view total_salaries_dep
+as
+select sum(salary) as total_salary_dep, dname, dnum, mgrssn, [MGRStart Date]
+from Employee join Departments on dno=dnum
+group by dname, dnum, mgrssn, [MGRStart Date];
+
+select *
+from total_salaries_dep
+where total_salary_dep > (select avg(total_salary_dep) from total_salaries_dep);
+
+/*8*/select MGRSSN, Fname+ ' ' +Lname as "Full Name", Bdate, Address, Sex, Salary, Dno,
+[MGRStart Date]
+from Departments join Employee on MGRSSN=SSN
+order by [MGRStart Date] asc;
+
+/*9*/select sex, COUNT(*) as "Count of Employees (Non-Supervisors)"
+from Employee
+where SSN not in (select Superssn from Employee where Superssn is not null)
+group by sex;
+
+/*10*/select ssn, Fname+ ' ' +lname as "Full Name", Bdate, Address, sex, Salary, dno
+from Employee left outer join Departments on dno=dnum
+where ssn in (select superssn from employee) or ssn in (select mgrssn from Departments);
+
+/*11*/select ssn, Fname+ ' ' +lname as "Full Name", Bdate, Address, sex, Salary,
+format(salary*0.25/salary,'p') as "Increment", salary+ (salary * 0.25) as "New Salary", dno
+from Employee;
+
+/*13 & 12*/begin transaction;
+insert into Departments
+values ('DP4', 40, 101029, 2024-30-6);
+insert into Employee
+values ('Adel', 'Ibrahim', 101029, 1990-1-10, '75 Fifth settlement, Cairo', 'M', 2000, 321654, 40);
+
+rollback transaction;
+
+/*14*/create view Top_3_Employees
+as
+select top 3 ssn, sum(Hours) as "Total Hours", count(*) as "Total Projects", Dname, MGRSSN,
+Fname+ ' ' +Lname as "Full Name",
+(select count(Dependent_name) from Dependent d where ssn=d.essn) as "Total Dependents"
+from departments join employee on dnum=dno
+join Works_for w on ssn=w.essn
+group by ssn, Dname, MGRSSN, Fname+ ' ' +Lname
+order by sum(Hours) desc;
+
+/*15*/select e.Fname+ ' ' +e.Lname as "Full Name"
+from Employee e join Employee s on e.superssn=s.ssn
+where s.fname ='Kamel' and s.lname='Mohamed';
+
+/*16*/create view Completed_Projects
+as
+select pnumber, Pname, Plocation, sum(hours) as "Total Hours"
+from Project join Works_for on Pnumber=pno
+group by pnumber, Pname, Plocation
+having sum(hours) > 40;
